@@ -1,0 +1,68 @@
+import os
+import sys
+
+# Bundled assets live next to the code (or in PyInstaller's temp dir); saved data goes to Application Support.
+BASE = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+DATA = os.path.expanduser("~/Library/Application Support/Snake") if getattr(sys, "frozen", False) else BASE
+os.makedirs(DATA, exist_ok=True)
+os.chdir(DATA)
+
+from turtle import Screen
+import time
+from snake import Snake
+from food import Food
+from scoreboard import ScoreBoard
+screen = Screen()
+screen.setup(width=600, height=600)
+screen.bgcolor("black")
+screen.title("Snake GAME")
+screen.tracer(0)
+
+# colors = ["red", "green", "blue", "yellow", "orange", "purple"]
+
+segments = []
+
+
+snake = Snake()
+food = Food()
+scoreboard = ScoreBoard()
+
+screen.listen()
+screen.onkey(snake.up, "Up")
+screen.onkey(snake.down, "Down")
+screen.onkey(snake.left, "Left")
+screen.onkey(snake.right, "Right")
+
+game_on = True
+
+while game_on:
+    screen.update()
+    time.sleep(0.1)
+    snake.move()
+# Detect collision with food
+    if snake.segments[0].distance(food) < 15:
+        food.refresh()
+        snake.extend()
+        scoreboard.increase_score()
+# Detect collision with wall
+    if snake.segments[0].xcor() > 280 or snake.segments[0].xcor() < -280 or snake.segments[0].ycor() > 280 or snake.segments[0].ycor() < -280:
+        scoreboard.reset()
+        snake.reset()
+        screen.update()
+        time.sleep(1)
+        continue
+
+# Detect collision with tail...
+
+    for segment in snake.segments[1:]:
+        if segment == snake.segments[0]:
+            pass
+        elif snake.segments[0].distance(segment) < 10:
+            scoreboard.reset()
+            snake.reset()
+            screen.update()
+            time.sleep(1)
+            continue
+
+
+screen.exitonclick()
